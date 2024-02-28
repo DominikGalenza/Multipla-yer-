@@ -3,6 +3,7 @@
 
 #include "MyBox.h"
 #include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AMyBox::AMyBox()
@@ -33,7 +34,7 @@ void AMyBox::BeginPlay()
 
 	if (HasAuthority())
 	{
-		GetWorld()->GetTimerManager().SetTimer(TestTimer, this, &AMyBox::DecreaseReplicatedVariable, 2.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(TestTimer, this, &AMyBox::MulticastRPCExplode, 2.0f, false);
 	}
 }
 
@@ -57,11 +58,11 @@ void AMyBox::OnRep_ReplicatedVariable()
 	{
 		FVector NewLocation = GetActorLocation() + FVector(0.0f, 0.0f, 200.0f);
 		SetActorLocation(NewLocation);
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("Server: OnRep_ReplicatedVariable"));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("Server: OnRep_ReplicatedVariable"));
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Client %d: OnRep_ReplicatedVariable"), GPlayInEditorID));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Client %d: OnRep_ReplicatedVariable"), GPlayInEditorID));
 	}
 }
 
@@ -75,5 +76,24 @@ void AMyBox::DecreaseReplicatedVariable()
 		{
 			GetWorld()->GetTimerManager().SetTimer(TestTimer, this, &AMyBox::DecreaseReplicatedVariable, 2.0f, false);
 		}
+	}
+}
+
+void AMyBox::MulticastRPCExplode_Implementation()
+{
+	if (HasAuthority())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Server: MulticastRPCExplode_Implementation"));
+		GetWorld()->GetTimerManager().SetTimer(TestTimer, this, &AMyBox::MulticastRPCExplode, 2.0f, false);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Client: MulticastRPCExplode_Implementation"));
+	}
+
+	if (!IsRunningDedicatedServer())
+	{
+		FVector SpawnLocation = GetActorLocation() + FVector(0, 0, 100.0f);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation(), FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
 	}
 }
