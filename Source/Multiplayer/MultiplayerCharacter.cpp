@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/StaticMeshActor.h"
+#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -145,7 +146,9 @@ void AMultiplayerCharacter::ServerRPCFunction_Implementation(int IntArgument)
 			return;
 		}
 
-		AStaticMeshActor* StaticMeshActor = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass());
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.Owner = this;
+		AStaticMeshActor* StaticMeshActor = GetWorld()->SpawnActor<AStaticMeshActor>(SpawnParameters);
 		if (StaticMeshActor)
 		{
 			StaticMeshActor->SetReplicates(true);
@@ -171,4 +174,9 @@ bool AMultiplayerCharacter::ServerRPCFunction_Validate(int IntArgument)
 		return true;
 	}
 	return false;
+}
+
+void AMultiplayerCharacter::ClientRPCFunction_Implementation()
+{
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleEffect, GetActorLocation(), FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
 }

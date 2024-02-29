@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Particles/ParticleSystem.h"
 #include "MultiplayerCharacter.generated.h"
 
 class USpringArmComponent;
@@ -72,7 +73,11 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable)
 	void ServerRPCFunction(int IntArgument);
+	UFUNCTION(Client, Reliable, BlueprintCallable)
+	void ClientRPCFunction();
 	UPROPERTY(EditAnywhere)
 	UStaticMesh* SphereMesh;
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ParticleEffect;
 };
 
